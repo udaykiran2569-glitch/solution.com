@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FinPulse | Finance Tracker</title>
+  <link rel="stylesheet" href="styles.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="theme-light">
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="brand-block">
+        
+        <div>
+         
+          <h1>Elevate everyday finance management</h1>
+          <p class="subtitle">Track transactions, P/L, accounts, investments, credits, debts and dividends in a modern dashboard layout.</p>
+        </div>
+      </div>
+
+      <div class="top-actions">
+        <button id="themeToggle" class="ghost-btn">🌙</button>
+      </div>
+    </header>
+
+    <nav class="page-nav" aria-label="Primary navigation">
+      <button class="nav-link active" data-page="dashboardPage">Dashboard</button>
+      <button class="nav-link" data-page="investmentsPage">Investments</button>
+      <button class="nav-link" data-page="accountsPage">Accounts</button>
+      <button class="nav-link" data-page="dividendsPage">Dividends</button>
+      <button class="nav-link" data-page="reportsPage">Reports</button>
+      <button class="nav-link" data-page="settingsPage">Settings</button>
+    </nav>
+
+    <main class="page-shell">
+      <section id="dashboardPage" class="page active">
+        <div class="section-head">
+          <div>
+            <h2>Overview</h2>
+            <p>Your finance summary in a single glance.</p>
+          </div>
+          <button id="addTransactionBtn" class="primary-btn">Add Record</button>
+        </div>
+
+        <div class="entry-panel panel">
+          <h3>Add New Record</h3>
+          <form id="recordEntryForm" class="entry-table-form">
+            <div class="entry-grid">
+              <label>
+                Date
+                <input type="date" id="recordDate" required />
+              </label>
+              <label>
+                Type
+                <select id="recordType" required>
+                  <option value="income">Income</option>
+                  <option value="expense">Expense</option>
+                  <option value="investment">Investment</option>
+                  <option value="dividend">Dividend</option>
+                  <option value="credit">Credit</option>
+                  <option value="debt">Debt</option>
+                </select>
+              </label>
+              <label>
+                Category
+                <input id="recordCategory" placeholder="Salary, Rent, FD, RD" required />
+              </label>
+              <label>
+                Description
+                <input id="recordDescription" placeholder="Transaction details" />
+              </label>
+              <label>
+                Amount
+                <input type="number" step="0.01" id="recordAmount" required />
+              </label>
+              <label>
+                Account
+                <input id="recordAccount" placeholder="Savings, Bank, Portfolio" required />
+              </label>
+            </div>
+            <div class="entry-actions">
+              <button type="submit" class="primary-btn">Save Record</button>
+            </div>
+          </form>
+        </div>
+
+        <div class="filter-row">
+          <div class="filter-group">
+            <label for="filterFrom">From</label>
+            <input type="date" id="filterFrom" />
+          </div>
+          <div class="filter-group">
+            <label for="filterTo">To</label>
+            <input type="date" id="filterTo" />
+          </div>
+          <div class="filter-actions">
+            <button id="filterButton" class="ghost-btn">Filter</button>
+            <button id="clearFilterButton" class="ghost-btn">Clear</button>
+          </div>
+          <div class="filter-note" id="filterNote"></div>
+        </div>
+
+        <div class="summary-grid">
+          <article class="summary-card accent-gradient">
+            <span>Total Balance</span>
+            <h2 id="totalBalance">₹0</h2>
+            <p>Net value across accounts, investments, and reserves.</p>
+          </article>
+          <article class="summary-card">
+            <span>Today P/L</span>
+            <h2 id="todayPL">₹0</h2>
+            <p>Daily profit or loss based on posted records.</p>
+          </article>
+          <article class="summary-card">
+            <span>Investments</span>
+            <h2 id="totalInvestment">₹0</h2>
+            <p>Amount allocated to FD, RD, portfolio, and long-term assets.</p>
+          </article>
+          <article class="summary-card">
+            <span>Credit / Debt</span>
+            <h2 id="creditDebt">₹0</h2>
+            <p>Open credit, loans, and outstanding debtor balances.</p>
+          </article>
+        </div>
+
+        <div class="dashboard-grid">
+          <div class="panel chart-panel">
+            <div class="panel-header">
+              <div>
+                <h3>Cash Flow Trend</h3>
+                <p>Daily net movement for your active records.</p>
+              </div>
+            </div>
+            <canvas id="trendChart"></canvas>
+          </div>
+
+          <div class="panel chart-panel">
+            <div class="panel-header">
+              <div>
+                <h3>Allocation Breakdown</h3>
+                <p>Category distribution across recorded values.</p>
+              </div>
+            </div>
+            <canvas id="categoryChart"></canvas>
+          </div>
+        </div>
+
+        <div class="section-head" style="margin-top: 32px;">
+          <div>
+            <h3>Transaction Ledger</h3>
+            <p>All transactions recorded by date, amount, category, and account.</p>
+          </div>
+        </div>
+
+        <div class="panel panel-full">
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Type</th>
+                  <th>Category</th>
+                  <th>Description</th>
+                  <th>Amount</th>
+                  <th>Account</th>
+                </tr>
+              </thead>
+              <tbody id="transactionBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section id="investmentsPage" class="page">
+        <div class="section-head">
+          <div>
+            <h2>Investments</h2>
+            <p>Monitor FD, RD, portfolio positions and growth entries.</p>
+          </div>
+          <button id="addInvestmentBtn" class="ghost-btn">Add Investment</button>
+        </div>
+
+        <div class="entry-panel panel">
+          <h3>New Investment Entry</h3>
+          <form id="investmentEntryForm" class="entry-table-form">
+            <div class="entry-grid">
+              <label>
+                Date
+                <input type="date" id="investmentDate" required />
+              </label>
+              <label>
+                Investment Type
+                <select id="investmentType" required>
+                  <option value="FD">FD</option>
+                  <option value="RD">RD</option>
+                  <option value="Equity">Equity</option>
+                  <option value="Mutual Fund">Mutual Fund</option>
+                </select>
+              </label>
+              <label>
+                Amount
+                <input type="number" step="0.01" id="investmentAmount" required />
+              </label>
+              <label>
+                Account
+                <input id="investmentAccount" placeholder="Portfolio, FD Reserve" required />
+              </label>
+              <label>
+                Notes
+                <input id="investmentNotes" placeholder="Investment details" />
+              </label>
+            </div>
+            <div class="entry-actions">
+              <button type="submit" class="primary-btn">Save Investment</button>
+            </div>
+          </form>
+        </div>
+
+        <div class="panel-grid">
+          <div class="panel info-panel">
+            <h3>Investment Summary</h3>
+            <p>Investment transactions and reserves shown with status.</p>
+            <ul class="panel-list" id="investmentList"></ul>
+          </div>
+
+          <div class="panel info-panel accent-card">
+            <h3>Investment Insights</h3>
+            <p>Use the ledger to track new FD, RD, equity and fixed assets.</p>
+            <div class="mini-metrics">
+              <div><span>FD + RD</span><strong id="reserveTotal">₹0</strong></div>
+              <div><span>Portfolio Value</span><strong id="portfolioTotal">₹0</strong></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="accountsPage" class="page">
+        <div class="section-head">
+          <div>
+            <h2>Accounts</h2>
+            <p>Track bank balances, wallet cash, and linked reserves.</p>
+          </div>
+          <button id="addAccountBtn" class="ghost-btn">Add Account</button>
+        </div>
+
+        <div class="entry-panel panel">
+          <h3>New Account</h3>
+          <form id="accountEntryForm" class="entry-table-form">
+            <div class="entry-grid">
+              <label>
+                Account Name
+                <input id="accountName" placeholder="Savings, Bank, Portfolio" required />
+              </label>
+              <label>
+                Balance
+                <input type="number" step="0.01" id="accountBalance" required />
+              </label>
+              <label>
+                Type
+                <select id="accountType" required>
+                  <option value="Bank">Bank</option>
+                  <option value="Savings">Savings</option>
+                  <option value="Investments">Investments</option>
+                  <option value="FD">FD</option>
+                  <option value="RD">RD</option>
+                </select>
+              </label>
+              <label>
+                Notes
+                <input id="accountNotes" placeholder="Notes or description" />
+              </label>
+            </div>
+            <div class="entry-actions">
+              <button type="submit" class="primary-btn">Save Account</button>
+            </div>
+          </form>
+        </div>
+
+        <div class="panel-grid">
+          <div class="panel account-panel" id="accountList"></div>
+        </div>
+      </section>
+
+      <section id="dividendsPage" class="page">
+        <div class="section-head">
+          <div>
+            <h2>Dividend Records</h2>
+            <p>Record payout amounts, sources, and dividend notes.</p>
+          </div>
+          <button id="addDividendBtn" class="ghost-btn">Add Dividend</button>
+        </div>
+
+        <div class="entry-panel panel">
+          <h3>New Dividend</h3>
+          <form id="dividendEntryForm" class="entry-table-form">
+            <div class="entry-grid">
+              <label>
+                Date
+                <input type="date" id="dividendDate" required />
+              </label>
+              <label>
+                Source
+                <input id="dividendSource" placeholder="Equity Dividend" required />
+              </label>
+              <label>
+                Amount
+                <input type="number" step="0.01" id="dividendAmount" required />
+              </label>
+              <label>
+                Account
+                <input id="dividendAccount" placeholder="Portfolio, Bank" required />
+              </label>
+              <label>
+                Note
+                <input id="dividendNote" placeholder="Quarterly payout" />
+              </label>
+            </div>
+            <div class="entry-actions">
+              <button type="submit" class="primary-btn">Save Dividend</button>
+            </div>
+          </form>
+        </div>
+
+        <div class="panel dividend-panel" id="dividendList"></div>
+      </section>
+
+      <section id="reportsPage" class="page">
+        <div class="section-head">
+          <div>
+            <h2>Reports</h2>
+            <p>Insightful metrics and breakdowns for budget planning.</p>
+          </div>
+          <button id="exportDataBtn" class="primary-btn">Export Data</button>
+        </div>
+
+        <div class="panel-grid">
+          <div class="panel report-card">
+            <strong>Net Worth</strong>
+            <p id="netWorth">-</p>
+          </div>
+          <div class="panel report-card">
+            <strong>Total Assets</strong>
+            <p id="totalAssets">-</p>
+          </div>
+          <div class="panel report-card">
+            <strong>Total Liabilities</strong>
+            <p id="totalLiabilities">-</p>
+          </div>
+          <div class="panel report-card">
+            <strong>Profit / Loss</strong>
+            <p id="profitLoss">-</p>
+          </div>
+        </div>
+
+        <div class="panel report-card report-summary">
+          <h3>Balance Sheet Summary</h3>
+          <p id="balanceSheetSummary">A quick snapshot of your net worth, assets, and liability position.</p>
+        </div>
+      </section>
+
+      <section id="settingsPage" class="page">
+        <div class="section-head">
+          <div>
+            <h2>Settings</h2>
+            <p>Manage user details and sign out safely.</p>
+          </div>
+        </div>
+
+        <div class="panel settings-panel">
+          <form id="settingsForm" class="settings-form">
+            <div class="entry-grid">
+              <label>
+                Name
+                <input id="settingsName" placeholder="Your name" />
+              </label>
+              <label>
+                Details
+                <textarea id="settingsDetails" placeholder="About you or your business"></textarea>
+              </label>
+            </div>
+            <div class="entry-actions">
+              <button type="button" id="saveSettingsBtn" class="primary-btn">Save Profile</button>
+              <button type="button" id="logoutBtn" class="ghost-btn">Logout</button>
+            </div>
+          </form>
+        </div>
+      </section>
+    </main>
+
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-analytics-compat.js"></script>
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyAX2FrT139AEGWJG-_YIejHBzv8899n57U",
+      authDomain: "solutions-34d3b.firebaseapp.com",
+      projectId: "solutions-34d3b",
+      storageBucket: "solutions-34d3b.firebasestorage.app",
+      messagingSenderId: "66606286012",
+      appId: "1:66606286012:web:92d1fa351235ef533a3cb9",
+      measurementId: "G-J5Y04WPV2J"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    firebase.analytics();
+  </script>
+  <script src="app.js"></script>
+</body>
+</html>
